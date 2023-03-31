@@ -250,10 +250,25 @@ function update() {
 
 
 function wsSetup() {
-    var url = "ws://"+host+"/subscribe";   
+    var base = "ws://"+host;
+    var url = base+"/subscribe";  
+    var urlWorld = base+"/world";
+
     socket = new WebSocket(url);
     socket.onopen = function() {
         //XXX: TODO What are you going to do here?
+
+        // FROM: https://stackoverflow.com/questions/37663674/using-fecth-api-to-access-json
+        fetch(
+            urlWorld, 
+            {method: 'GET'}
+        )
+        .then( function(response) { return response.json(); })
+        .then( function(data) {
+            let myEntity = data['entity'];
+            let myData = data['data'];
+            world[myEntity] = myData;  
+        });
     };
     socket.onerror = function(msg) {
         debug("WebSocket Error:" + msg.data);
@@ -261,11 +276,22 @@ function wsSetup() {
     socket.onmessage = function(msg) {  
         try {
             debug("WebSocket Recv:" + msg.data);
-            //XXX: TODO What are you going to do here?            
+            //XXX: TODO What are you going to do here?   
+            
+            var message = JSON.parse(msg.data);
+            console.log(message);
+
+            let myEntity = message['entity'];
+            let myData = message['data'];
+            world[myEntity] = myData;            
+            
+            drawNextFrame();
+
         } catch (e) {
             alert("socket on message: " + e);
         }
     }; 
+
 }
 
 wsSetup();
