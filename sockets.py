@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import flask
-from flask import Flask, request, redirect
+from flask import Flask, request, redirect, Response
 from flask_sockets import Sockets
 import gevent
 from gevent import queue
@@ -92,7 +92,7 @@ def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
     # https://stackoverflow.com/questions/14343812/redirecting-to-url-in-flash
 
-    return redirect("http://127.0.0.1:5000/static/index.html", code=302)
+    return redirect("http://127.0.0.1:8000/static/index.html", code=302)
 
 
 def read_ws(ws,client):
@@ -120,7 +120,7 @@ def subscribe_socket(ws):
        websocket and read updates from the websocket '''
     # FROM: https://stackoverflow.com/questions/33767817/how-to-subscribe-to-websocket-api-channel-using-python
     # XXX: TODO IMPLEMENT ME
-    
+
     client = Client()
     clients.append(client)
     g = gevent.spawn( read_ws, ws, client )    
@@ -160,7 +160,11 @@ def flask_post_json():
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    # https://stackoverflow.com/questions/26079754/flask-how-to-return-a-success-status-code-for-ajax-call
+
+
+
+
+
 
     data = flask_post_json()
     myWorld.set(entity, data)
@@ -172,13 +176,13 @@ def update(entity):
 def world():
     '''you should probably return the world here'''
 
-    return json.dumps(myWorld.world()), 200, {'ContentType':'application/json'} 
+    return Response(json.dumps(myWorld.world()), 200, mimetype='application/json')
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
 
-    return json.dumps(myWorld.get(entity)), 200, {'ContentType':'application/json'} 
+    return Response(json.dumps(myWorld.get(entity)), 200, mimetype='application/json')
 
 
 @app.route("/clear", methods=['POST','GET'])
@@ -186,7 +190,7 @@ def clear():
     '''Clear the world out!'''
 
     myWorld.clear()
-    return json.dumps(myWorld.world()), 200, {'ContentType':'application/json'} 
+    return Response(json.dumps(myWorld.world()), 200, mimetype='application/json')
 
 
 
