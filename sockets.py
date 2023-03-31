@@ -81,10 +81,11 @@ def read_ws(ws,client):
 
     while not ws.closed:
         message = ws.receive()
+        message = json.loads(message)
         print(message)
 
-    
-
+        for element in message:
+            myWorld.set(element, message[element])
 
     return None
 
@@ -99,6 +100,9 @@ def subscribe_socket(ws):
     # XXX: TODO IMPLEMENT ME
 
     try:
+        result = ws.recv()
+
+
         ws.send(json.dumps({
             "event":"subscribe",
             "channel":"trades"
