@@ -26,6 +26,27 @@ app = Flask(__name__)
 sockets = Sockets(app)
 app.debug = True
 
+# FROM: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+clients = list()
+
+def send_all(msg):
+    for client in clients:
+        client.put( msg ) 
+
+def send_all_json(obj):
+    send_all( json.dumps(obj) )
+
+class Client:
+    def __init__(self):
+        self.queue = queue.Queue()
+
+    def put(self, msg):
+        self.queue.put_nowait(msg)
+
+    def get(self):
+        return self.queue.get()
+
+
 class World:
     def __init__(self):
         self.clear()
@@ -76,19 +97,20 @@ def hello():
 
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
-    # FROM: https://stackoverflow.com/questions/44706033/connecting-to-a-flask-websocket-using-python
+    # FROM: https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
     # XXX: TODO IMPLEMENT ME
 
-    while not ws.closed:
-        message = ws.receive()
-        message = json.loads(message)
-        print(message)
-
-        for element in message:
-            myWorld.set(element, message[element])
-
-    return None
-
+    try:
+        while True:
+            msg = ws.receive()
+            print("WS RECV: ", msg)
+            if (msg is not None):
+                packet = json.loads(msg)
+                send_all_json( packet)
+            else:
+                break
+    except:
+        pass
 
 
 
@@ -98,23 +120,22 @@ def subscribe_socket(ws):
        websocket and read updates from the websocket '''
     # FROM: https://stackoverflow.com/questions/33767817/how-to-subscribe-to-websocket-api-channel-using-python
     # XXX: TODO IMPLEMENT ME
-
+    
+    client = Client()
+    clients.append(client)
+    g = gevent.spawn( read_ws, ws, client )    
     try:
-        result = ws.recv()
+        while True:
+            # block here
+            msg = client.get()
+            ws.send(msg)
+    except Exception as e:# WebSocketError as e:
+        print("WS Error ", e)
+    finally:
+        clients.remove(client)
+        gevent.kill(g)
 
 
-        ws.send(json.dumps({
-            "event":"subscribe",
-            "channel":"trades"
-        }))
-    except:
-        pass
-
-
-
-
-
-    return None
 
 
 # I give this to you, this is how you get the raw body/data portion of a post in flask
