@@ -59,3 +59,11 @@ Contributors
 * Mark Galloway
 * Abram Hindle
 * Cole Mackenzie
+
+* Noah Batiuk
+
+Made use of the following resources while updating code:
+https://github.com/abramhindle/WebSocketsExamples/blob/master/chat.py
+https://stackoverflow.com/questions/14343812/redirecting-to-url-in-flash
+https://stackoverflow.com/questions/33767817/how-to-subscribe-to-websocket-api-channel-using-python
+https://stackoverflow.com/questions/37663674/using-fecth-api-to-access-json
