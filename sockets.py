@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 import flask
-from flask import Flask, request
+from flask import Flask, request, redirect
 from flask_sockets import Sockets
 import gevent
 from gevent import queue
@@ -66,21 +66,50 @@ def set_listener( entity, data ):
 
 myWorld.add_set_listener( set_listener )
         
-@app.route('/')
+@app.route("/")
 def hello():
     '''Return something coherent here.. perhaps redirect to /static/index.html '''
-    return None
+    # https://stackoverflow.com/questions/14343812/redirecting-to-url-in-flash
+
+    return redirect("http://127.0.0.1:5000/static/index.html", code=302)
+
 
 def read_ws(ws,client):
     '''A greenlet function that reads from the websocket and updates the world'''
+    # FROM: https://stackoverflow.com/questions/44706033/connecting-to-a-flask-websocket-using-python
     # XXX: TODO IMPLEMENT ME
+
+    while not ws.closed:
+        message = ws.receive()
+        print(message)
+
+    
+
+
     return None
+
+
+
 
 @sockets.route('/subscribe')
 def subscribe_socket(ws):
     '''Fufill the websocket URL of /subscribe, every update notify the
        websocket and read updates from the websocket '''
+    # FROM: https://stackoverflow.com/questions/33767817/how-to-subscribe-to-websocket-api-channel-using-python
     # XXX: TODO IMPLEMENT ME
+
+    try:
+        ws.send(json.dumps({
+            "event":"subscribe",
+            "channel":"trades"
+        }))
+    except:
+        pass
+
+
+
+
+
     return None
 
 
@@ -96,26 +125,44 @@ def flask_post_json():
     else:
         return json.loads(request.form.keys()[0])
 
+
+
+# @app.route("/entity/<entity>", methods=['POST','PUT'])
+# def update(entity):
+#     '''update the entities via this interface'''
+#     return None
+
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
-    return None
+    # https://stackoverflow.com/questions/26079754/flask-how-to-return-a-success-status-code-for-ajax-call
+
+    data = flask_post_json()
+    myWorld.set(entity, data)
+
+    return json.dumps(myWorld.get(entity)), 200, {'ContentType':'application/json'}
+
 
 @app.route("/world", methods=['POST','GET'])    
 def world():
     '''you should probably return the world here'''
-    return None
+
+    return json.dumps(myWorld.world()), 200, {'ContentType':'application/json'} 
 
 @app.route("/entity/<entity>")    
 def get_entity(entity):
     '''This is the GET version of the entity interface, return a representation of the entity'''
-    return None
+
+    return json.dumps(myWorld.get(entity)), 200, {'ContentType':'application/json'} 
 
 
 @app.route("/clear", methods=['POST','GET'])
 def clear():
     '''Clear the world out!'''
-    return None
+
+    myWorld.clear()
+    return json.dumps(myWorld.world()), 200, {'ContentType':'application/json'} 
+
 
 
 
