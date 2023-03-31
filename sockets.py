@@ -152,11 +152,6 @@ def flask_post_json():
 
 
 
-# @app.route("/entity/<entity>", methods=['POST','PUT'])
-# def update(entity):
-#     '''update the entities via this interface'''
-#     return None
-
 @app.route("/entity/<entity>", methods=['POST','PUT'])
 def update(entity):
     '''update the entities via this interface'''
